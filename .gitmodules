@@ -1,0 +1,3 @@
+[submodule "include/levenshtein"]
+	path = include/levenshtein
+	url = https://github.com/wooorm/levenshtein.c.git
