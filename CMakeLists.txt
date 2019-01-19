@@ -3,5 +3,8 @@
 #
 cmake_minimum_required (VERSION 3.8)
 
-project ("neighborjoining")
+PROJECT (neighborjoining)
+SET(NJSOURCES 
+	src/fasta_parser.c src/fasta_parser.h)
 
+ADD_EXECUTABLE(neighborjoining src/neighborjoining.c ${NJSOURCES})
