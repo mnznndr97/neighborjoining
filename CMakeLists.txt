@@ -16,3 +16,7 @@ TARGET_INCLUDE_DIRECTORIES(
 	neighborjoining-win
 	PRIVATE include/glib
 	PRIVATE include/glib/glib)
+
+TARGET_INCLUDE_DIRECTORIES(
+		neighborjoining-linux
+		PRIVATE /usr/include/glib-2.0/)
