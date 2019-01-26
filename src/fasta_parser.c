@@ -1,47 +1,49 @@
-#include "io.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
-#include <glib.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <assert.h>
+#include "fasta_parser.h"
 
+static char* fasta_parse_sequence(FILE* file_handle, char* line_buffer, size_t* lineb_length){
+    GSList* lines_list = NULL;
+    ssize_t readed_chars = 0;
+    ssize_t sequence_length = 0;
+    char* buffer;
 
-const char * load_file(const char *file_name) {
-    FILE *f = fopen(file_name, "r");
+    while (((readed_chars = getline(&line_buffer, lineb_length, file_handle)) != -1)
+            && strlen(line_buffer) > 0){
+        // Need a buffer copy
+        lines_list = g_slist_append(lines_list, line_buffer);
+        sequence_length += readed_chars;
+    }
+
+    assert(sequence_length > 0);
+    buffer = malloc(sequence_length);
+}
+
+pfasta fasta_parse_file(const char *file_name) {
+    FILE *file_handle = fopen(file_name, "r");
 
     GSList* list1 = NULL;
     GSList* list2 = NULL;
 
     char *result = NULL;
 
-    char *line1 = NULL;
-	size_t len1 = 0;
-	ssize_t read1;
+    char *curr_line = NULL;
+	size_t line_length = 0;
+	ssize_t readed_chars;
 
-    char *line2 = NULL;
-	size_t len2 = 0;
-	ssize_t read2;
 
     size_t lenTotal = 0;
 
-    if (!f) {
-        perror("Unable to open input file");
-        return NULL;
-    }
-    
-    while ((read1 = getline(&line1, &len1, fp1)) != -1) {
-        if (line1[0] == '>'){
-            while ((read2 = getline(&line2, &len2, fp2)) != -1) {
-                if(line2[0] != ''){
-                    list2 = g_slist_append(list2, line2);
-                    lenTotal += len2;
-                }
-                else{
-                    break;
-                }    
-            }
+    while ((readed_chars = getline(&curr_line, &line_length, file_handle)) != -1) {
+        if (curr_line[0] == '>'){
+            // We are reading a sequence
+            fasta_parse_sequence(&list1, file_handle, curr_line, &line_length);
+
         }
 
-        if (line1[0] == ' ') {
+        if (curr_line[0] == ' ') {
             for (GList *item = list2; item != NULL; item = g_slist_next(l)) {
                 result = (char *) malloc(1 + lenTotal);
                 char * st = (item->data);
@@ -54,11 +56,20 @@ const char * load_file(const char *file_name) {
 		} 
     }
 
-    fclose(f);
+    fclose(file_handle);
 
-    if (line1)
-		free(line1);
+    if (curr_line)
+		free(curr_line);
     if (line2)
 		free(line2);
+}
+
+void fasta_free(pfasta fasta){
+    if(!fasta);
+
+    if(fasta->sequences) {
+        g_list_free(fasta->sequences);
+        fasta->sequences = NULL;
+    }
 }
 
