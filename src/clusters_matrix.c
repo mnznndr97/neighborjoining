@@ -7,13 +7,14 @@
 
 /* Inline sections */
 
-int inline matrix_to_array(int row, int col, int n) {
-	return (row * n) + col;
+int inline clusters_to_index(int cluster1, int cluster2) {
+	return (cluster2 * (cluster2 - 1) / 2) + cluster1;
 }
 
-int inline row_to_cluster(int row) {
-	return row + 1;
+int inline clusters_cumulative_distance(pclusters_matrix instance, int cluster) {
+	return instance->matrix[instance->matrix_size + cluster];
 }
+
 
 /* Private section */
 
@@ -31,50 +32,31 @@ static void clusters_calculate_distances(pclusters_matrix instance) {
 	int size = instance->initial_cluster_count;
 	int* matrix = instance->matrix;
 
-	for (int i = 0; i < clusters - 1; i++)
+	// For each cluster we need to calculate the cumulative distance
+	for (int i = 0; i < clusters; i++)
 	{
-		/* in this case, i represents a cluster with index [B .. Z],
-		* that correspond to a row in our matrix.
-		* j is only used to traverse the row
-		*/
-		for (int j = 0; j <= i; j++)
+		for (int j = 0; j < i; j++)
 		{
-			matrix[matrix_to_array(i, clusters - 1, size)] += matrix[matrix_to_array(i, j, size)];
+			matrix[instance->matrix_size + i] += matrix[clusters_to_index(j, i)];
+			printf("[DBG] Cluster (%d)[%d] += %d(%d, %d)[%d]\n", i, instance->matrix_size + i, matrix[clusters_to_index(j, i)], j, i, clusters_to_index(j, i));
 		}
 
-		/* in this case, i represents a cluster with index [A .. Y],
-		* that correspond to a col in our matrix.
-		* j is only used to traverse the col from below the diagonal
-		*/
-		for (int j = i; j < clusters - 1; j++)
+		for (int j = i + 1; j < clusters; j++)
 		{
-			matrix[matrix_to_array(clusters - 1, i, size)] += matrix[matrix_to_array(j, i, size)];
+			matrix[instance->matrix_size + i] += matrix[clusters_to_index(i, j)];
+			printf("[DBG] Cluster (%d)[%d] += %d(%d, %d)[%d]\n", i, instance->matrix_size + i, matrix[clusters_to_index(i, j)], i, j, clusters_to_index(i, j));
 		}
 	}
 }
 
-static int clusters_cumulative_distance(pclusters_matrix instance, int cluster) {
-	int dist = 0;
-	int clusters = instance->current_cluster_count;
-	// If we are looking for the distance for the clusters [A - Y], we search the value in the sum row
-	if (cluster <= clusters - 1) dist += instance->matrix[matrix_to_array(clusters - 1, cluster, instance->initial_cluster_count)];
-
-	// If we are looking for the distance for the clusters [B - Z], we search the value in the sum col
-	// The cluster index must be decremented since we use a "reduced" simmetric matrix
-	if (cluster > 0) dist += instance->matrix[matrix_to_array(cluster - 1, clusters - 1, instance->initial_cluster_count)];
-
-	return dist;
-}
-
-
-static double clusters_separation_degree(pclusters_matrix instance, int colCluster, int rowCluster) {
+static double clusters_separation_degree(pclusters_matrix instance, int fCluster, int sCluster) {
 	// We have to compute degree = D(C1, C2) - U(C1) -U(C2)
 	// Since we use half of the simmetric matrix, cluster2 must represent a 
-	int colClusterC = clusters_cumulative_distance(instance, colCluster);
-	int rowClusterC = clusters_cumulative_distance(instance, rowCluster + 1);
+	int fClusterC = clusters_cumulative_distance(instance, fCluster);
+	int sClusterC = clusters_cumulative_distance(instance, sCluster);
 
-	double degree = (double)instance->matrix[matrix_to_array(rowCluster, colCluster, instance->initial_cluster_count)];
-	degree -= (colClusterC + rowClusterC) / (instance->current_cluster_count - 2);
+	double degree = (double)instance->matrix[clusters_to_index(fCluster, sCluster)];
+	degree -= (fClusterC + sClusterC) / (instance->current_cluster_count - 2);
 	return degree;
 }
 
@@ -87,14 +69,12 @@ static void clusters_search_closest(pclusters_matrix instance, int* cluster1, in
 	int size = instance->initial_cluster_count;
 	int* matrix = instance->matrix;
 
-	// i represents clusters from A[0] to Y [cols in the matrix]
 	for (int i = 0; i < clusters - 1; i++)
 	{
-		// j represents clusters from B[0] to Z
-		for (int j = i; j < clusters - 1; j++)
+		for (int j = i + 1; j < clusters; j++)
 		{
 			double separation_degree = clusters_separation_degree(instance, i, j);
-			//printf("Degree for C%d-C%d: %f\n", i, j + 1, separation_degree);
+			printf("Degree for C%d-C%d: %f\n", i, j, separation_degree);
 			if (separation_degree < *best_separation_degree)
 			{
 				*best_separation_degree = separation_degree;
@@ -112,12 +92,12 @@ static void clusters_update_distances(pclusters_matrix instance, int col, int ro
 	// We have to update all the distances for the new col element and new row element
 	for (int i = row; i < clusters - 1; i++)
 	{
-		matrix[matrix_to_array(i, col, size)] = (matrix[matrix_to_array(i + 1, col, size)] + matrix[matrix_to_array(i + 1, col + 1, size)] - oldDistance) / 2;
+		matrix[clusters_to_index(i, col)] = (matrix[clusters_to_index(i + 1, col)] + matrix[clusters_to_index(i + 1, col + 1)] - oldDistance) / 2;
 	}
 
 	for (int i = 0; i < col; i++)
 	{
-		matrix[matrix_to_array(row - 1, i, size)] = (matrix[matrix_to_array(row - 1, i, size)] + matrix[matrix_to_array(row, i, size)] - oldDistance) / 2;
+		matrix[clusters_to_index(row - 1, i)] = (matrix[clusters_to_index(row - 1, i)] + matrix[clusters_to_index(row, i)] - oldDistance) / 2;
 	}
 
 	// We have to move backward the columns since we have "lost" a cluster 
@@ -125,52 +105,68 @@ static void clusters_update_distances(pclusters_matrix instance, int col, int ro
 	{
 		for (int j = 0; j < col; j++)
 		{
-			matrix[matrix_to_array(i - 1, j, size)] = matrix[matrix_to_array(i, j, size)];
+			matrix[clusters_to_index(i - 1, j)] = matrix[clusters_to_index(i, j)];
 		}
 
 		for (int j = col + 2; j < clusters; j++)
 		{
-			matrix[matrix_to_array(i - 1, j - 1, size)] = matrix[matrix_to_array(i, j, size)];
+			matrix[clusters_to_index(i - 1, j - 1)] = matrix[clusters_to_index(i, j)];
 		}
 	}
 
-	for (int i = 0; i < clusters - 1; i++)
+	for (int i = 0; i < clusters; i++)
 	{
-		matrix[matrix_to_array(i, clusters - 1, size)] = 0;
-		matrix[matrix_to_array(clusters - 1, i, size)] = 0;
+		matrix[instance->matrix_size + i] = 0;
 	}
 	clusters_calculate_distances(instance);
 }
 
 /* Public section */
-pclusters_matrix clusters_create_matrix(int * source, int size)
+pclusters_matrix clusters_create_matrix(int* source, int size)
 {
 	size_t matrix_type_size = sizeof(clusters_matrix);
-	pclusters_matrix new_matrix = (pclusters_matrix)malloc(matrix_type_size);
+	pclusters_matrix new_instance = (pclusters_matrix)calloc(1, matrix_type_size);
 
-	new_matrix->initial_cluster_count = size;
-	new_matrix->current_cluster_count = size;
-	new_matrix->matrix = (int*)calloc(size * size, sizeof(int));
+	if (new_instance) {
+		// Allocation for the triangular matrix with all zeros
+		int matrix_size = (size * (size - 1) / 2) + size;
+		new_instance->matrix = (int*)calloc(matrix_size, sizeof(int));
 
-	for (int i = 1; i < size; i++)
-	{
-		for (int j = 0; j < size - 1; j++)
+		if (new_instance->matrix) {
+			new_instance->initial_cluster_count = size;
+			new_instance->current_cluster_count = size;
+			new_instance->matrix_size = matrix_size - size;
+			// Fill out matrix from the source distances matrix
+			for (int i = 0; i < size - 1; i++)
+			{
+				for (int j = i + 1; j < size; j++)
+				{
+					new_instance->matrix[clusters_to_index(i, j)] = source[i + j * size];
+				}
+			}
+			clusters_calculate_distances(new_instance);
+		}
+		else
 		{
-			new_matrix->matrix[matrix_to_array(i - 1, j, size)] = source[matrix_to_array(i, j, size)];
+			// In case of error
+			clusters_free_distances(new_instance);
+			new_instance = 0;
 		}
 	}
-	clusters_calculate_distances(new_matrix);
-	return new_matrix;
+	return new_instance;
 }
 
 void clusters_free_distances(pclusters_matrix instance)
 {
-	if (instance == 0) return;
+	if (!instance) return;
 
-	free(instance->matrix);
+	if (instance->matrix)
+		free(instance->matrix);
 	instance->matrix = 0;
 	instance->initial_cluster_count = 0;
 	instance->current_cluster_count = 0;
+
+	free(instance);
 }
 
 int clusters_increase_clustering(pclusters_matrix instance) {
@@ -184,42 +180,42 @@ int clusters_increase_clustering(pclusters_matrix instance) {
 
 	// TODO -> Store data for tree
 	instance->current_cluster_count--;
-	clusters_update_distances(instance, c1, c2, instance->matrix[matrix_to_array(c2, c1, instance->initial_cluster_count)]);
+	instance->matrix_size -= instance->current_cluster_count;
+	clusters_update_distances(instance, c1, c2, instance->matrix[clusters_to_index(c1, c2)]);
 }
 
 void clusters_print_matrix(pclusters_matrix matrix)
 {
-	if (matrix == 0) return;
+	if (!matrix) return;
 
 	int clusters = matrix->current_cluster_count;
 	int size = matrix->initial_cluster_count;
 
 	// Print table header
 	printf("%10s|", "Clusters");
-	for (size_t i = 0; i < clusters - 1; i++)
+	for (int i = 0; i < clusters; i++)
 	{
 		printf("C%-4d|", i);
 
 	}
-	printf("%-5s|", "SUM");
 	printf("\n");
 
 	// Print table rows
-	for (int i = 0; i < clusters - 1; i++)
+	for (int i = 1; i < clusters; i++)
 	{
-		printf("%9s%d|", "C", row_to_cluster(i));
-		for (int j = 0; j < clusters; j++)
+		printf("%9s%d|", "C", i);
+		for (int j = 0; j < i; j++)
 		{
-			printf("%5d|", matrix->matrix[matrix_to_array(i, j, size)]);
+			printf("%5d|", matrix->matrix[clusters_to_index(j, i)]);
 		}
 		printf("\n");
 	}
 
 	// print last sum row
 	printf("%10s|", "SUM");
-	for (int j = 0; j < clusters - 1; j++)
+	for (int j = 0; j < clusters; j++)
 	{
-		printf("%5d|", matrix->matrix[matrix_to_array(clusters - 1, j, size)]);
+		printf("%5d|", matrix->matrix[matrix->matrix_size + j]);
 	}
 	printf("\n");
 }

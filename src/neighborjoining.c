@@ -16,6 +16,7 @@ int main(int argc, char* argv[]) {
 	pclusters_matrix matrix = clusters_create_matrix(source_matrix, 6);
 	clusters_print_matrix(matrix);
 
+	system("pause");
 	clusters_increase_clustering(matrix);
 	clusters_print_matrix(matrix);
 
@@ -35,7 +36,12 @@ int main(int argc, char* argv[]) {
 	system("pause");
 }
 
-void neighbor_joining(int** matrix, int n) {
+void neighbor_joining(int* matrix, int n) {
+	pclusters_matrix matrix = clusters_create_matrix(matrix, 6);
 
-
+	while (clusters_increase_clustering(matrix) > 1)
+	{
+		// Build tree
+	}
+	 // print tree
 }
