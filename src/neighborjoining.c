@@ -37,9 +37,9 @@ int main(int argc, char* argv[]) {
 }
 
 void neighbor_joining(int* matrix, int n) {
-	pclusters_matrix matrix = clusters_create_matrix(matrix, 6);
+	pclusters_matrix instance = clusters_create_matrix(matrix, 6);
 
-	while (clusters_increase_clustering(matrix) > 1)
+	while (clusters_increase_clustering(instance) > 1)
 	{
 		// Build tree
 	}

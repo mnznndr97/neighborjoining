@@ -9,4 +9,10 @@ SET(NJSOURCES
 	src/binary_tree.c src/binary_tree.h
 	src/clusters_matrix.c src/clusters_matrix.h)
 
-ADD_EXECUTABLE(neighborjoining src/neighborjoining.c ${NJSOURCES})
+ADD_EXECUTABLE(neighborjoining-win src/neighborjoining.c ${NJSOURCES})
+ADD_EXECUTABLE(neighborjoining-linux src/neighborjoining.c ${NJSOURCES})
+
+TARGET_INCLUDE_DIRECTORIES(
+	neighborjoining-win
+	PRIVATE include/glib
+	PRIVATE include/glib/glib)

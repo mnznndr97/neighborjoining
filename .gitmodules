@@ -1,3 +1,6 @@
 [submodule "include/levenshtein"]
 	path = include/levenshtein
 	url = https://github.com/wooorm/levenshtein.c.git
+[submodule "include/glib"]
+	path = include/glib
+	url = https://github.com/winlibs/glib.git
