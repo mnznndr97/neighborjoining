@@ -2,10 +2,17 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
+
 #include "fasta_parser.h"
 
+/**
+ * @brief Rimuove le prime occorrenze di tutti i caratteri di ritorno a capo
+ * Rimuove le prime occorrenze di tutti i caratteri di ritorno a capo [\n \r] con il carattere \0
+ *
+ * @param str Buffer da modificare
+ */
 static void line_replace_trailing(char* str){
-char* pos;
+    char* pos;
     if ((pos=strchr(str, '\n')) != NULL)
         *pos = '\0';
     if ((pos=strchr(str, '\r')) != NULL)
@@ -19,7 +26,7 @@ static char* fasta_parse_sequence(FILE* file_handle, char* line_buffer, size_t* 
     char* buffer;
 
     while (((readed_chars = getline(&line_buffer, lineb_length, file_handle)) != -1)
-            && strlen(line_buffer) > 0){
+            && strlen(line_buffer) > 1){
 
         char * localb = malloc(readed_chars + 1);
         strcpy(localb, line_buffer);
@@ -36,11 +43,13 @@ static char* fasta_parse_sequence(FILE* file_handle, char* line_buffer, size_t* 
         free(item->data);
     }
     g_slist_free(lines_list);
+    return buffer;
 }
 
 pfasta fasta_parse_file(const char *file_name) {
     FILE *file_handle = fopen(file_name, "r");
 
+    pfasta  result = malloc(sizeof(fasta));
     GSList* seq_list = NULL;
     char *curr_line = NULL;
 	size_t line_length = 0;
@@ -54,6 +63,9 @@ pfasta fasta_parse_file(const char *file_name) {
         }
     }
     fclose(file_handle);
+
+    result->sequences = seq_list;
+    return  result;
 }
 
 void fasta_free(pfasta fasta){

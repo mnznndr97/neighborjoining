@@ -7,11 +7,11 @@
 
 /* Inline sections */
 
-int inline clusters_to_index(int cluster1, int cluster2) {
+static inline int clusters_to_index(int cluster1, int cluster2) {
 	return (cluster2 * (cluster2 - 1) / 2) + cluster1;
 }
 
-int inline clusters_cumulative_distance(pclusters_matrix instance, int cluster) {
+static inline int clusters_cumulative_distance(pclusters_matrix instance, int cluster) {
 	return instance->matrix[instance->matrix_size + cluster];
 }
 
