@@ -3,7 +3,8 @@
 #include "clusters_matrix.h"
 #include "fasta_parser.h"
 #include <levenshtein.h>
-int main(int argc, char* argv[]) {
+
+int main(int argc, char **argv) {
 
 //	int* source_matrix = (int*)calloc(6 * 6, sizeof(int));
 //
@@ -34,25 +35,35 @@ int main(int argc, char* argv[]) {
 //
 //	clusters_free_distances(matrix);
 
-	pfasta parsed = fasta_parse_file("/home/barzi-xub/Documents/bioinfo/neighborjoining/examples/fasta_ten_example.fa");
+    pfasta parsed = fasta_parse_file(argv[1]);
+    size_t count = parsed->sequences_count;
 
+    int* distances_matrix = calloc(count * count, sizeof(int));
+    int row = 0, column = 0;
     for (GSList *item = parsed->sequences; item != NULL; item = g_slist_next(item)) {
         for (GSList *item2 = parsed->sequences; item2 != NULL; item2 = g_slist_next(item2)) {
-            size_t a = levenshtein(item->data, item2->data);
-            printf("%s\n%s\n%d\n\n", item->data, item2->data, a);
-
+            int distance = (int)levenshtein(item->data, item2->data);
+            distances_matrix[row * count + column] = distance;
+            printf("%s\n%s\n%d[%d,%d -> %d]\n\n", (char *) item->data, (char *) item2->data, distance, row, column, row * count + column);
+            column++;
         }
+        row++;
+        column = 0;
     }
     fasta_free(parsed);
-	system("pause");
+
+    pclusters_matrix matrix = clusters_create_matrix(distances_matrix, count);
+    clusters_print_matrix(matrix);
+
+    clusters_increase_clustering(matrix);
+    clusters_print_matrix(matrix);
 }
 
-void neighbor_joining(int* matrix, int n) {
-	pclusters_matrix instance = clusters_create_matrix(matrix, 6);
+void neighbor_joining(int *matrix, int n) {
+    pclusters_matrix instance = clusters_create_matrix(matrix, 6);
 
-	while (clusters_increase_clustering(instance) > 1)
-	{
-		// Build tree
-	}
-	 // print tree
+    while (clusters_increase_clustering(instance) > 1) {
+        // Build tree
+    }
+    // print tree
 }

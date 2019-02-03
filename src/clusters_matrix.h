@@ -7,6 +7,7 @@
 typedef struct _clusters_matrix
 {
 	int *matrix;
+	char** clusters_names;
 	int initial_cluster_count;
 	int current_cluster_count;
 	int matrix_size;
