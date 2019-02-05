@@ -4,11 +4,13 @@
 typedef struct tree_node tree_node, *ptree_node;
 
 typedef struct tree_node {
-	int value; ///< Value of the node
+	char* value; ///< Value of the node
 	ptree_node left; ///< Left node
 	double lvalue; ///< Value of the node
 	ptree_node right; ///< Right node
 	double rvalue; ///< Value of the node
 
-};
+}tree_node, *ptree_node;
 #endif // !_BINARY_TREE_H
+
+void tree_draw_horizontal(ptree_node tree);

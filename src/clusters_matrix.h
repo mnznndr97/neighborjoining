@@ -1,16 +1,21 @@
 #ifndef _CLUSTERS_MATRIX_H
 #define _CLUSTERS_MATRIX_H
 
+#include "binary_tree.h"
+
 /**
 * Contenitore per i dati sui clusters
 **/
 typedef struct _clusters_matrix
 {
-	int *matrix;
+	double *matrix;
 	char** clusters_names;
 	int initial_cluster_count;
 	int current_cluster_count;
 	int matrix_size;
+
+	ptree_node filogenetic_tree_root;
+	ptree_node *clusters_nodes;
 } clusters_matrix, *pclusters_matrix;
 
 

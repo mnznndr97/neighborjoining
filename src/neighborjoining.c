@@ -1,8 +1,9 @@
 #include<stdio.h>
 #include<stdlib.h>
+#include <levenshtein.h>
 #include "clusters_matrix.h"
 #include "fasta_parser.h"
-#include <levenshtein.h>
+#include "binary_tree.h"
 
 int main(int argc, char **argv) {
 
@@ -38,13 +39,14 @@ int main(int argc, char **argv) {
     pfasta parsed = fasta_parse_file(argv[1]);
     size_t count = parsed->sequences_count;
 
-    int* distances_matrix = calloc(count * count, sizeof(int));
+    int *distances_matrix = calloc(count * count, sizeof(int));
     int row = 0, column = 0;
     for (GSList *item = parsed->sequences; item != NULL; item = g_slist_next(item)) {
         for (GSList *item2 = parsed->sequences; item2 != NULL; item2 = g_slist_next(item2)) {
-            int distance = (int)levenshtein(item->data, item2->data);
+            int distance = (int) levenshtein(item->data, item2->data);
             distances_matrix[row * count + column] = distance;
-            printf("%s\n%s\n%d[%d,%d -> %d]\n\n", (char *) item->data, (char *) item2->data, distance, row, column, row * count + column);
+            printf("%s\n%s\n%d[%d,%d -> %d]\n\n", (char *) item->data, (char *) item2->data, distance, row, column,
+                   row * count + column);
             column++;
         }
         row++;
@@ -55,8 +57,13 @@ int main(int argc, char **argv) {
     pclusters_matrix matrix = clusters_create_matrix(distances_matrix, count);
     clusters_print_matrix(matrix);
 
-    clusters_increase_clustering(matrix);
-    clusters_print_matrix(matrix);
+    int degree = 0;
+    do {
+        degree = clusters_increase_clustering(matrix);
+        clusters_print_matrix(matrix);
+        tree_draw_horizontal(matrix->filogenetic_tree_root);
+        printf("\n\n\n");
+    } while (degree > 1);
 }
 
 void neighbor_joining(int *matrix, int n) {
