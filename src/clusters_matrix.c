@@ -207,17 +207,22 @@ pclusters_matrix clusters_create_matrix(int *source, int size) {
 
     // Create the names and nodes array items
     for (int i = 0; i < size; ++i) {
-        new_instance->clusters_nodes[i] = clusters_create_node(new_instance, i);
-
         size_t required_chars = (size_t) snprintf(NULL, 0, "C%d", i) + 1;
         new_instance->clusters_names[i] = calloc(required_chars, sizeof(char));
+        snprintf(new_instance->clusters_names[i], required_chars, "C%d", i);
 
-        if (!new_instance->clusters_nodes[i] || !new_instance->clusters_names[i]) {
+        if (!new_instance->clusters_names[i]) {
             // In case of error
             clusters_free_distances(new_instance);
             return NULL;
         }
-        snprintf(new_instance->clusters_names[i], required_chars, "C%d", i);
+
+        new_instance->clusters_nodes[i] = clusters_create_node(new_instance, i);
+        if (!new_instance->clusters_nodes[i]) {
+            // In case of error
+            clusters_free_distances(new_instance);
+            return NULL;
+        }
     }
     // Pre-calculation of the cumulative distances for each cluster
     clusters_calculate_distances(new_instance);
