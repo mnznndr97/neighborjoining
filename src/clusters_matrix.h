@@ -47,5 +47,5 @@ int clusters_increase_clustering(pclusters_matrix matrix);
 * Stampa a video la matrice di cluster nello stato corrente
 * @param matrice Matrice di clusters
 **/
-void clusters_print_matrix(pclusters_matrix matrix);
+void clusters_print_matrix(pclusters_matrix instance);
 #endif // !_CLUSTERS_MATRIX_H

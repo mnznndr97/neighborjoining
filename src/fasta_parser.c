@@ -26,21 +26,21 @@ static void line_replace_trailing(char* str){
  * @param lineb_length Length of the buffer
  * @return Parsed FASTA sequence
  */
-static char* fasta_parse_sequence(FILE* file_handle, char* line_buffer, size_t* lineb_length){
+static char* fasta_parse_sequence(FILE* file_handle, char** line_buffer, size_t* lineb_length){
     GSList* lines_list = NULL;
     ssize_t readed_chars = 0;
     size_t sequence_length = 0;
     char* buffer;
 
-    while ((readed_chars = getline(&line_buffer, lineb_length, file_handle)) != -1){
+    while ((readed_chars = getline(line_buffer, lineb_length, file_handle)) != -1){
         // The buffer returner from getline contains the newline escape characters. We first need to remove them
-        line_replace_trailing(line_buffer);
+        line_replace_trailing(*line_buffer);
         // We have encountered an empty line. The sequence is finished
-        if(strlen(line_buffer)<=0) break;
+        if(strlen(*line_buffer)<=0) break;
 
         // We need to copy the buffer before the next getline
         char * localb = malloc(readed_chars + 1);
-        strcpy(localb, line_buffer);
+        strcpy(localb, *line_buffer);
 
         lines_list = g_slist_append(lines_list, localb);
         sequence_length += readed_chars;
@@ -76,7 +76,7 @@ pfasta fasta_parse_file(const char *file_name) {
     while (getline(&curr_line, &line_length, file_handle) != -1) {
         if (curr_line[0] == '>'){
             // We are reading a sequence
-            char* seq_buffer = fasta_parse_sequence(file_handle, curr_line, &line_length);
+            char* seq_buffer = fasta_parse_sequence(file_handle, &curr_line, &line_length);
             seq_list = g_slist_append(seq_list, seq_buffer);
         }
     }

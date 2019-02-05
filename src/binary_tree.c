@@ -1,8 +1,20 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include "binary_tree.h"
 
 #define SPACES 10
+
+static void tree_tree_df(ptree_node node){
+    if(!node) return;
+
+    tree_tree_df(node->left);
+    tree_tree_df(node->right);
+
+    free(node->name);
+    memset(node, 0, sizeof(tree_node));
+    free(node);
+}
 
 static void tree_draw_horizontal_r(ptree_node tree, ptree_node parent, int depth, int right) {
     if (tree == NULL) return;
@@ -26,8 +38,8 @@ static void tree_draw_horizontal_r(ptree_node tree, ptree_node parent, int depth
             printf(">");
     }
 
-    // Print the current node value
-    printf("[%s]\n", tree->value);
+    // Print the current node name
+    printf("[%s]\n", tree->name);
 
 
     // go to left node
@@ -36,4 +48,8 @@ static void tree_draw_horizontal_r(ptree_node tree, ptree_node parent, int depth
 
 void tree_draw_horizontal(ptree_node tree) {
     tree_draw_horizontal_r(tree, NULL, 0, 0);
+}
+
+void tree_free(ptree_node tree){
+    tree_tree_df(tree);
 }
