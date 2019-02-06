@@ -1,0 +1,7 @@
+package "neighbourjoining"
+version "1.0"
+
+purpose "Neighbor joining from a FASTA file"
+
+args "--unamed-opts"
+option "verbose" v "Print verbose output" flag off

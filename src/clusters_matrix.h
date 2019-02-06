@@ -14,8 +14,8 @@ typedef struct _clusters_matrix
 	int current_cluster_count;
 	int matrix_size;
 
-	ptree_node filogenetic_tree_root;
-	ptree_node *clusters_nodes;
+	pbtree_node filogenetic_tree_root;
+	pbtree_node *clusters_nodes;
 } clusters_matrix, *pclusters_matrix;
 
 
