@@ -66,12 +66,14 @@ static char *fasta_parse_sequence(FILE *file_handle, char **line_buffer, size_t 
  * @return fasta structure with the parsed sequences list
  */
 pfasta fasta_parse_file(const char *file_name) {
-    FILE *file_handle = fopen(file_name, "r");
-
-    pfasta result = malloc(sizeof(fasta));
     GSList *seq_list = NULL;
     char *curr_line = NULL;
     size_t line_length = 0;
+
+    FILE *file_handle = fopen(file_name, "r");
+    if (!file_handle) return NULL;
+    pfasta result = malloc(sizeof(fasta));
+    if (!result) return NULL;
 
     while (getline(&curr_line, &line_length, file_handle) != -1) {
         if (curr_line[0] == '>') {
