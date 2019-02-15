@@ -26,6 +26,7 @@ int main(int argc, char **argv) {
     char *source_file = args_info.inputs[0];
     pfasta parsed = fasta_parse_file(source_file);
     if (!parsed || fasta_sequences_count(parsed) == 0) {
+        fasta_free(parsed);
         perror("Unable to parse FASTA file");
         return -1;
     }
