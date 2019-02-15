@@ -1,10 +1,9 @@
-﻿################################################################################
-# Il file gitignore è stato creato automaticamente da Microsoft(R) Visual Studio.
-################################################################################
-
-/.vs
+﻿/.vs
 .DS_Store
 /.vscode
 /.idea
 /cmake-build-debug
 CMakeFiles/
+*.cmake
+CMakeCache.txt
+Makefile
