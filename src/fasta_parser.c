@@ -5,6 +5,12 @@
 
 #include "fasta_parser.h"
 
+struct _fasta_sequences {
+    GSList *sequences; ///< List of all sequences read from a FASTA file
+    size_t sequences_count; ///< Number of parsed sequences
+};
+
+
 /**
  * Substitutes the first occurrence of the characters [\n \r] with the \0 char
  *
@@ -59,12 +65,6 @@ static char *fasta_parse_sequence(FILE *file_handle, char **line_buffer, size_t 
     return buffer;
 }
 
-/**
- * Parses all sequences FASTA file into a structure
- *
- * @param file_name File name of the file to parse
- * @return fasta structure with the parsed sequences list
- */
 pfasta fasta_parse_file(const char *file_name) {
     GSList *seq_list = NULL;
     char *curr_line = NULL;
@@ -90,11 +90,6 @@ pfasta fasta_parse_file(const char *file_name) {
     return result;
 }
 
-/**
- * Frees al the resources associated to a fasta structure
- *
- * @param fasta_seq Pointer to the fasta structure
- */
 void fasta_free(pfasta fasta_seq) {
     if (!fasta_seq) return;
 
@@ -107,4 +102,16 @@ void fasta_free(pfasta fasta_seq) {
     memset(fasta_seq, 0, sizeof(fasta));
     free(fasta_seq);
 }
+
+size_t fasta_sequences_count(const fasta *fasta_seq) {
+    if (!fasta_seq) return 0;
+    return fasta_seq->sequences_count;
+}
+
+GSList *fasta_sequences_list(const fasta *fasta_seq) {
+    if (!fasta_seq) return 0;
+    return fasta_seq->sequences;
+
+}
+
 

@@ -25,12 +25,12 @@ int main(int argc, char **argv) {
 
     char *source_file = args_info.inputs[0];
     pfasta parsed = fasta_parse_file(source_file);
-    if (!parsed) {
+    if (!parsed || fasta_sequences_count(parsed) == 0) {
         perror("Unable to parse FASTA file");
         return -1;
     }
 
-    size_t count = parsed->sequences_count;
+    size_t count = fasta_sequences_count(parsed);
     int *distances_matrix = calloc(count * count, sizeof(int));
     if (!distances_matrix) {
         fasta_free(parsed);
@@ -39,8 +39,8 @@ int main(int argc, char **argv) {
     }
 
     int row = 0, column = 0;
-    for (GSList *item = parsed->sequences; item != NULL; item = g_slist_next(item)) {
-        for (GSList *item2 = parsed->sequences; item2 != NULL; item2 = g_slist_next(item2)) {
+    for (GSList *item = fasta_sequences_list(parsed); item != NULL; item = g_slist_next(item)) {
+        for (GSList *item2 = fasta_sequences_list(parsed); item2 != NULL; item2 = g_slist_next(item2)) {
             int distance = (int) levenshtein(item->data, item2->data);
             distances_matrix[row * count + column] = distance;
             column++;

@@ -6,6 +6,19 @@
 #include <string.h>
 #include <stdarg.h>
 
+
+struct _clusters_matrix {
+    double *matrix;
+    char **clusters_names;
+    size_t initial_cluster_count;
+    size_t current_cluster_count;
+    size_t matrix_size;
+
+    pbtree_node filogenetic_tree_root;
+    pbtree_node *clusters_nodes;
+    int verbose;
+};
+
 /* Inline sections */
 
 static inline size_t clusters_to_index(size_t cluster1, size_t cluster2) {
@@ -190,13 +203,6 @@ static void clusters_update_distances(pclusters_matrix instance, size_t c1, size
 
 /* Public section */
 
-/**
- * Create a new clustering instance for the given
- *
- * @param source Distance matrix for each single cluster
- * @param size Number of clusters
- * @return New clustering instance
- */
 pclusters_matrix clusters_create_matrix(int *source, size_t size, int verbose_flag) {
     size_t instance_size = sizeof(clusters_matrix);
     pclusters_matrix new_instance = (pclusters_matrix) calloc(1, instance_size);
@@ -259,11 +265,6 @@ pclusters_matrix clusters_create_matrix(int *source, size_t size, int verbose_fl
     return new_instance;
 }
 
-/**
- * Free al the resources associated with a clustering instance
- *
- * @param instance Clustering instance
- */
 void clusters_free_distances(pclusters_matrix instance) {
     if (!instance) return;
 

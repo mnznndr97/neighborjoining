@@ -7,18 +7,7 @@
 /**
 * Contenitore per i dati sui clusters
 **/
-typedef struct _clusters_matrix
-{
-	double *matrix;
-	char** clusters_names;
-	size_t initial_cluster_count;
-	size_t current_cluster_count;
-	size_t matrix_size;
-
-	pbtree_node filogenetic_tree_root;
-	pbtree_node *clusters_nodes;
-	int verbose;
-} clusters_matrix, *pclusters_matrix;
+typedef struct _clusters_matrix clusters_matrix, *pclusters_matrix;
 
 
 /**
